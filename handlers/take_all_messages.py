@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message
 from config import Config
-from database.repo import MessagesRepo
+from database.repo import MessagesRepo, Id_UsersRepo
 from aiogram import types
 import os
 import uuid
@@ -43,6 +43,8 @@ async def handle_photo(message: types.Message):
         message_id=message_id
     )
     MessagesRepo.add_message(id_user=id_user, message_id=local_id_message, text=message.caption)
+    if Id_UsersRepo.get_user(id_user) is None:
+        Id_UsersRepo.add_user(id_user, (f'@{message.from_user.username}' or message.from_user.full_name))
 
 
 
@@ -66,5 +68,8 @@ async def send_message_to_group(message: Message):
     )
 
     MessagesRepo.add_message(id_user=id_user, message_id=str(uuid.uuid4()), text=text)
+    if Id_UsersRepo.get_user(id_user) is None:
+        Id_UsersRepo.add_user(id_user, (f'@{message.from_user.username}' or message.from_user.full_name))
+
 
 

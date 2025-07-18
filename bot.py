@@ -19,15 +19,12 @@ async def main():
         ping_all.router,
         take_all_messages.router
     )
-    try:
-        await bot.send_message(
-            chat_id=os.environ.get("ID_GROUP"),
-            text=f'Скрипт тех поддержки запущен в данном чате {time.strftime("%H:%M:%S %Y-%m-%d", time.localtime())}'
-        )
-        await dp.start_polling(bot)
-    except Exception as e:
-        with open('error.log', 'a') as f:
-            f.write(f"{time.strftime("%H:%M:%S %Y-%m-%d", time.localtime())} - Can't start bot, exceprion: {e}\n")
+
+    await bot.send_message(
+        chat_id=os.environ.get("ID_GROUP"),
+        text=f'Скрипт тех поддержки запущен в данном чате {time.strftime("%H:%M:%S %Y-%m-%d", time.localtime())}'
+    )
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     print('start', time.strftime("%H:%M:%S %Y-%m-%d", time.localtime()))
