@@ -14,7 +14,11 @@ async def ping_all(message: Message, command: CommandObject):
         if check_password[check_password.find('-p')+3:] == Config.password:
             users = Id_UsersRepo.get_users()
             for user in users:
-                await config.bot.send_message(chat_id=user.telegram_id, text=message.text[message.text.find('/ping_all')+10:message.text.find("-p")])
+                try:
+                    await config.bot.send_message(chat_id=user.telegram_id, text=message.text[message.text.find('/ping_all')+10:message.text.find("-p")])
+                except Exception as e:
+                    pass
+            await message.reply("Успешно!")
         else:
             await message.reply("Неправильный пароль")
     except Exception as e:
