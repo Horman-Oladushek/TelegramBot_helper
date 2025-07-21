@@ -1,23 +1,6 @@
 from .enigne import EngineController
-from .models import Id_Users, Messages
+from .models import Id_Users
 
-class MessagesRepo:
-    database_controller = EngineController()
-
-    @classmethod
-    def add_message(cls, id_user, message_id, text):
-        session = cls.database_controller.create_session()
-        message = Messages(id_user=id_user, message_id=message_id, text=text)
-        session.add(message)
-        session.commit()
-        session.close()
-
-    @classmethod
-    def get_messages(cls):
-        session = cls.database_controller.create_session()
-        messages = session.query(Messages).all()
-        session.close()
-        return messages
 
 class Id_UsersRepo:
     database_controller = EngineController()
@@ -43,3 +26,18 @@ class Id_UsersRepo:
         user = session.query(Id_Users).filter_by(telegram_id=id_user).first()
         session.close()
         return user
+
+    @classmethod
+    def get_user_name(cls, id_user):
+        session = cls.database_controller.create_session()
+        name = session.query(Id_Users.name_in_chat).filter_by(telegram_id=id_user).first()
+        session.close()
+        return name[0]
+
+    @classmethod
+    def update_name_user(cls, id_user, name):
+        session = cls.database_controller.create_session()
+        user = session.query(Id_Users).filter_by(telegram_id=id_user).first()
+        user.name_in_chat = name
+        session.commit()
+        session.close()

@@ -1,10 +1,11 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message
 from config import Config
-from database.repo import MessagesRepo
 from aiogram import types
+from help_def.del_message import delete_message_after_delay
+from database.repo import Id_UsersRepo
 import os
-import uuid
 
 config = Config()
 router = Router()
@@ -12,8 +13,6 @@ router = Router()
 
 @router.message(F.content_type == types.ContentType.PHOTO)
 async def handle_photo(message: types.Message):
-    local_id_message = str(uuid.uuid4())
-
     id_user = message.from_user.id
 
     if message.from_user.username is None:
@@ -26,15 +25,6 @@ async def handle_photo(message: types.Message):
     )
 
     message_id = message.message_id
-    photo = message.photo[-1]
-
-    file_id = photo.file_id
-    file = await config.bot.get_file(file_id)
-    file_path = file.file_path
-    if not os.path.exists('photos'):
-        os.makedirs('photos')
-    await config.bot.download_file(file_path, f'photos/{local_id_message}.jpg')
-
     from_chat_id = message.chat.id
 
     await config.bot.copy_message(
@@ -42,29 +32,29 @@ async def handle_photo(message: types.Message):
         from_chat_id=from_chat_id,
         message_id=message_id
     )
-    MessagesRepo.add_message(id_user=id_user, message_id=local_id_message, text=message.caption)
-
 
 
 @router.message()
 async def send_message_to_group(message: Message):
-    text = message.text
     id_user = message.from_user.id
+    member = await Config.bot.get_chat_member(chat_id=os.environ.get("ID_GROUP"), user_id=id_user)
+    if member.status == "left" or member.status == "creator":  # !!!!!!!!!!!! ПРОВЕРКА НА creator ТОЛЬКО НА ВРЕМЯ РАЗРАБОТКИ!!!!!!!!!!!!!!!!!!!!!!!!!!
+        text = message.text
+        id_user = message.from_user.id
+        print(Id_UsersRepo.get_user_name(id_user))
+        if Id_UsersRepo.get_user_name(id_user) is not None:
+            text_to_group = f'{Id_UsersRepo.get_user_name(id_user)} (id: {id_user}):\n{text}'
+        elif message.from_user.username is None:
+            text_to_group = f'Новый пользователь {message.from_user.full_name} (id: {id_user}):\n{text}'
+        else:
+            text_to_group = f'Пользователь @{message.from_user.username} (id: {id_user}):\n{text}'
+        await config.bot.send_message(
+            chat_id=os.environ.get("ID_GROUP"),
+            text=text_to_group
+        )
 
-    if message.from_user.username is None:
-        text_to_group = f'Пользователь {message.from_user.full_name} (id: {id_user}):\n{text}'
-    else:
-        text_to_group = f'Пользователь @{message.from_user.username} (id: {id_user}):\n{text}'
-    await config.bot.send_message(
-        chat_id=os.environ.get("ID_GROUP"),
-        text=text_to_group
-    )
-
-    await config.bot.send_message(
-        chat_id=id_user,
-        text="Ожидайте ответа"
-    )
-
-    MessagesRepo.add_message(id_user=id_user, message_id=str(uuid.uuid4()), text=text)
-
-
+        answer = await config.bot.send_message(
+            chat_id=id_user,
+            text="Ожидайте ответа"
+        )
+        await asyncio.create_task(delete_message_after_delay(message.chat.id, answer.message_id))

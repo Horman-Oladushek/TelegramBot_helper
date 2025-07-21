@@ -1,22 +1,27 @@
 from aiogram.types import Message
-from aiogram import F, filters
+from aiogram import F
 from aiogram import Router
 from bot import Config
+from help_def.del_message import delete_message_after_delay
+import asyncio
 import os
 
 config = Config()
 router = Router()
 
+
 @router.message(F.reply_to_message)
 async def reply_handler(message: Message):
     m = message.reply_to_message.text
     if m.find('id: ') != -1:
-        id_user = m[m.find('id: ')+4:m.find('):\n')]
+        id_user = m[m.find('id: ') + 4:m.find('):\n')]
         print(id_user)
         await config.bot.send_message(chat_id=id_user, text=message.text)
-        await message.reply(f"Ответ отправлен!")
-    elif 'Ответ отправлен!' in m or 'Ожидайте ответа' in m:
-        await message.reply('Возможно вы ответили на системное сообщение, повторите попытку отвечая не на системное сообщение')
+        answer = await message.reply(f"Ответ отправлен!")
+        await asyncio.create_task(delete_message_after_delay(os.environ.get("ID_GROUP"), answer.message_id))
+    elif 'Ответ отправлен!' in m or 'Ожидайте ответа' in m or 'Скрипт тех поддержки запущен в данном чате' in m:
+        await message.reply(
+            'Возможно вы ответили на системное сообщение, повторите попытку отвечая не на системное сообщение')
     else:
         text = message.text
         id_user = message.from_user.id
@@ -30,4 +35,5 @@ async def reply_handler(message: Message):
             text=text_to_group
         )
 
-        await config.bot.send_message(chat_id=id_user, text="Ожидайте ответа")
+        answer = await config.bot.send_message(chat_id=id_user, text="Ожидайте ответа")
+        await asyncio.create_task(delete_message_after_delay(message.chat.id, answer.message_id))

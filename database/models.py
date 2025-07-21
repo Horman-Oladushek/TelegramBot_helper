@@ -2,8 +2,10 @@ import sqlalchemy
 
 from sqlalchemy.orm import DeclarativeBase
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class Id_Users(Base):
     __tablename__ = 'id_users'
@@ -18,25 +20,6 @@ class Id_Users(Base):
         sqlalchemy.String(32)
     )
 
-class Messages(Base):
-    __tablename__ = 'messages'
-
-    id = sqlalchemy.Column(
-        sqlalchemy.Integer,
-        primary_key=True,
-        autoincrement=True
-    )
-
-
-    id_user = sqlalchemy.Column(
-        sqlalchemy.String(32),
-        sqlalchemy.ForeignKey('id_users.telegram_id')
-    )
-
-    message_id = sqlalchemy.Column(
+    name_in_chat = sqlalchemy.Column(
         sqlalchemy.String(32)
-    )
-
-    text = sqlalchemy.Column(
-        sqlalchemy.String(1024)
     )
