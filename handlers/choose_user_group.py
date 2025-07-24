@@ -1,0 +1,35 @@
+from aiogram import Router, types
+from aiogram.types import Message
+from aiogram.filters import Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from database.repo import TopicsRepo, Id_UsersRepo
+from config import Config
+import os
+
+router = Router()
+
+@router.message(Command("choose_user_group"))
+async def start(message: Message):
+    builder = InlineKeyboardBuilder()
+    if message.reply_to_message is None:
+        await message.reply("Ответьте на сообщение пользователя, чтобы перенаправлять его сообщения в группу")
+    else:
+        m = message.reply_to_message.text
+        for i in TopicsRepo.get_topics():
+            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=f'{m[m.find('id: ') + 4:m.find('):\n')]} {i.id_topic}'))
+
+        keyboard = builder.as_markup()
+
+        if keyboard.inline_keyboard:
+            await message.reply("Выберите группу", reply_markup=keyboard)
+        else:
+            await message.reply("Группы еще не добавлены")
+
+@router.callback_query()
+async def callback_handler(call: types.CallbackQuery):
+    user_id, id_topic = call.data.split()
+    Id_UsersRepo.update_group_user(user_id, id_topic)
+    if Id_UsersRepo.get_user_name(user_id) is None:
+        await Config.bot.send_message(chat_id=os.environ.get("ID_MAIN_GROUP"), text=f'Пользователь {Id_UsersRepo.get_user(user_id).username} перешел в группу {TopicsRepo.get_topic(id_topic).name_topic}')
+    else:
+        await Config.bot.send_message(chat_id=os.environ.get("ID_MAIN_GROUP"), text=f'Пользователь {Id_UsersRepo.get_user(user_id).name_in_chat} перешел в группу {TopicsRepo.get_topic(id_topic).name_topic}')

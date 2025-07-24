@@ -20,7 +20,8 @@ async def handle_photo(message: types.Message):
     else:
         text_to_group = f'Пользователь @{message.from_user.username} (id: {id_user}):\n'
     await config.bot.send_message(
-        chat_id=os.environ.get("ID_GROUP"),
+        chat_id=os.environ.get("ID_MAIN_GROUP"),
+        message_thread_id=(Id_UsersRepo.get_user(id_user).id_group or None),
         text=text_to_group
     )
 
@@ -28,7 +29,8 @@ async def handle_photo(message: types.Message):
     from_chat_id = message.chat.id
 
     await config.bot.copy_message(
-        chat_id=os.environ.get("ID_GROUP"),
+        chat_id=os.environ.get("ID_MAIN_GROUP"),
+        message_thread_id=(Id_UsersRepo.get_user(id_user).id_group or None),
         from_chat_id=from_chat_id,
         message_id=message_id
     )
@@ -37,11 +39,11 @@ async def handle_photo(message: types.Message):
 @router.message()
 async def send_message_to_group(message: Message):
     id_user = message.from_user.id
-    member = await Config.bot.get_chat_member(chat_id=os.environ.get("ID_GROUP"), user_id=id_user)
-    if member.status == "left" or member.status == "creator":  # !!!!!!!!!!!! ПРОВЕРКА НА creator ТОЛЬКО НА ВРЕМЯ РАЗРАБОТКИ!!!!!!!!!!!!!!!!!!!!!!!!!!
+    member = await Config.bot.get_chat_member(chat_id=os.environ.get("ID_MAIN_GROUP"), user_id=id_user)
+    if member.status == "left":# or member.status == "creator":  # !!!!!!!!!!!! ПРОВЕРКА НА creator ТОЛЬКО НА ВРЕМЯ РАЗРАБОТКИ!!!!!!!!!!!!!!!!!!!!!!!!!!
         text = message.text
         id_user = message.from_user.id
-        print(Id_UsersRepo.get_user_name(id_user))
+
         if Id_UsersRepo.get_user_name(id_user) is not None:
             text_to_group = f'{Id_UsersRepo.get_user_name(id_user)} (id: {id_user}):\n{text}'
         elif message.from_user.username is None:
@@ -49,7 +51,8 @@ async def send_message_to_group(message: Message):
         else:
             text_to_group = f'Пользователь @{message.from_user.username} (id: {id_user}):\n{text}'
         await config.bot.send_message(
-            chat_id=os.environ.get("ID_GROUP"),
+            chat_id=os.environ.get("ID_MAIN_GROUP"),
+            message_thread_id=(Id_UsersRepo.get_user(id_user).id_group or None),
             text=text_to_group
         )
 
