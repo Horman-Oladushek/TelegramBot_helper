@@ -10,7 +10,6 @@ import os
 config = Config()
 router = Router()
 
-tech_words = ['Ответ отправлен!', 'Ожидайте ответа', 'Скрипт тех поддержки запущен в данном чате']
 
 @router.message(F.reply_to_message)
 async def reply_handler(message: Message):
@@ -31,10 +30,10 @@ async def reply_handler(message: Message):
                 await config.bot.send_message(chat_id=id_user, text=f'{message.from_user.full_name} ответил:\n{message.text}')
             answer = await message.reply(f"Ответ отправлен!")
             await asyncio.create_task(delete_message_after_delay(os.environ.get("ID_MAIN_GROUP"), answer.message_id))
-        elif 'Ответ отправлен!' in m or 'Ожидайте ответа' in m or 'Скрипт тех поддержки запущен в данном чате' in m:
+        elif 'Ответ отправлен!' in m or 'Ожидайте ответа' in m or 'Скрипт тех поддержки запущен в данном чате' in m or 'Техподдержка принимает текстовые сообщения, фотографии с подписями и без, видео и видеосообщения' in m or 'Возможно вы ответили на системное сообщение, повторите попытку ответив на другое сообщение' in m:
             await message.reply(
                 'Возможно вы ответили на системное сообщение, повторите попытку ответив на другое сообщение')
-        else:
+        elif message.reply_to_message.from_user.id != id_user:
             text = message.text
             id_user = message.from_user.id
 
