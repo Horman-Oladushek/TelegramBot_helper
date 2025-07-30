@@ -24,8 +24,8 @@ async def start(message: Message):
         m = message.reply_to_message.text
         print(m)
         for i in TopicsRepo.get_topics():
-
-            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=f'{m[m.find('id: ') + 4:m.find('):\n')]} {i.id_topic}'))
+            callback = f'{m[m.find('id: ') + 4:m.find('):\n')]} {i.id_topic}'
+            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=callback))
 
         keyboard = builder.as_markup()
 
