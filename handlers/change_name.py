@@ -9,8 +9,15 @@ router = Router()
 
 
 @router.message(Command("name"))
-async def start(message: Message):
-    name = message.text[6:]
+async def name(message: Message):
+    if '@' in message.text:
+        name_all = message.text.split()
+        name = ''
+        for i in name_all:
+            if '@' not in i:
+                name += i
+    else:
+        name = message.text[6:]
     if message.reply_to_message is None:
         Id_UsersRepo.update_name_user(message.from_user.id, name)
         answer = await message.reply("Ваше имя изменено")

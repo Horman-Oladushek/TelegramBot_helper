@@ -1,8 +1,8 @@
 from config import Config
 from aiogram import Router
 from aiogram.types import Message
-from database.repo import Id_UsersRepo
 from aiogram.filters import Command
+from database.repo import Id_UsersRepo
 import os
 
 config = Config()
@@ -11,6 +11,13 @@ router = Router()
 @router.message(Command("ping_all"))
 async def ping_all(message: Message):
     try:
+        id_user = message.from_user.id
+        if Id_UsersRepo.get_user(id_user) is None:
+            if message.from_user.username is None:
+                Id_UsersRepo.add_user(id_user, message.from_user.full_name, id_group=None)
+            else:
+                Id_UsersRepo.add_user(id_user, f'@{message.from_user.username}', id_group=None)
+
         member = await Config.bot.get_chat_member(chat_id=os.environ.get("ID_MAIN_GROUP"), user_id=message.from_user.id)
         if member.status != 'left':
             users = Id_UsersRepo.get_users()

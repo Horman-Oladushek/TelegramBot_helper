@@ -4,12 +4,19 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from database.repo import TopicsRepo, Id_UsersRepo
 from config import Config
+from database.repo import Id_UsersRepo
 import os
 
 router = Router()
 
 @router.message(Command("choose_user_group"))
 async def start(message: Message):
+    id_user = message.from_user.id
+    if Id_UsersRepo.get_user(id_user) is None:
+        if message.from_user.username is None:
+            Id_UsersRepo.add_user(id_user, message.from_user.full_name, id_group=None)
+        else:
+            Id_UsersRepo.add_user(id_user, f'@{message.from_user.username}', id_group=None)
     builder = InlineKeyboardBuilder()
     if message.reply_to_message is None:
         await message.reply("Ответьте на сообщение пользователя, чтобы перенаправлять его сообщения в группу")
