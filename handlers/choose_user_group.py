@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from database.repo import TopicsRepo, Id_UsersRepo
 from config import Config
-from database.repo import Id_UsersRepo
+import re
 import os
 
 router = Router()
@@ -22,10 +22,15 @@ async def start(message: Message):
         await message.reply("Ответьте на сообщение пользователя, чтобы перенаправлять его сообщения в группу")
     else:
         m = message.reply_to_message.text
-        print(m)
         for i in TopicsRepo.get_topics():
-            callback = f'{m[m.find('id: ') + 4:m.find('):\n')]} {i.id_topic}'
-            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=callback))
+            match = re.search(r"id:\s*(\S+)\s*:\n", m)  # Ищем "id:", пробелы, любые непробельные символы, ":", перевод строки
+            if match:
+                extracted_id = match.group(1)  # Получаем первую группу (то, что в скобках)
+                callback = f'{extracted_id} {i.id_topic}'
+                builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=callback))
+            else:
+                print(f"Warning: 'id: ...:\\n' pattern not found in message: {m}")
+                continue
 
         keyboard = builder.as_markup()
 
