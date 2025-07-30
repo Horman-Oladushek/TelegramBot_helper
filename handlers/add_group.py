@@ -14,5 +14,8 @@ async def send_message_to_group(message: Message):
             Id_UsersRepo.add_user(id_user, message.from_user.full_name, id_group=None)
         else:
             Id_UsersRepo.add_user(id_user, f'@{message.from_user.username}', id_group=None)
-    TopicsRepo.add_topic(message.reply_to_message.forum_topic_created.name, message.message_thread_id)
-    await message.reply("Чат добавлен")
+    try:
+        TopicsRepo.add_topic(message.reply_to_message.forum_topic_created.name, message.message_thread_id)
+        await message.reply("Чат добавлен")
+    except Exception as e:
+        await message.reply("Чат уже добавлен")

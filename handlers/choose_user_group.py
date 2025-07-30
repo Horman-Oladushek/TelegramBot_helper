@@ -22,8 +22,10 @@ async def start(message: Message):
         await message.reply("Ответьте на сообщение пользователя, чтобы перенаправлять его сообщения в группу")
     else:
         m = message.reply_to_message.text
+        print(m)
         for i in TopicsRepo.get_topics():
-            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=f'{m[m.find("id: ") + 4:m.find("):\n")]} {i.id_topic}'))
+
+            builder.row(types.InlineKeyboardButton(text=i.name_topic, callback_data=f'{m[m.find('id: ') + 4:m.find('):\n')]} {i.id_topic}'))
 
         keyboard = builder.as_markup()
 
@@ -35,6 +37,11 @@ async def start(message: Message):
 @router.callback_query()
 async def callback_handler(call: types.CallbackQuery):
     user_id, id_topic = call.data.split()
+    while user_id.isdigit() == False:
+        if user_id[0].isdigit() == False:
+            user_id = user_id[1:]
+        if user_id[-1].isdigit() == False:
+            user_id = user_id[:-1]
     Id_UsersRepo.update_group_user(user_id, id_topic)
     if Id_UsersRepo.get_user_name(user_id) is None:
         await Config.bot.send_message(chat_id=os.environ.get("ID_MAIN_GROUP"), text=f'Пользователь {Id_UsersRepo.get_user(user_id).username} перешел в группу {TopicsRepo.get_topic(id_topic).name_topic}')
