@@ -14,7 +14,7 @@ tech_words = ['Ответ отправлен!', 'Ожидайте ответа',
 
 @router.message(F.reply_to_message)
 async def reply_handler(message: Message):
-    id_user = message.from_user.ud
+    id_user = message.from_user.id
     if Id_UsersRepo.get_user(id_user) is None:
         if message.from_user.username is None:
             Id_UsersRepo.add_user(id_user, message.from_user.full_name, id_group=None)
