@@ -3,6 +3,7 @@ from aiogram.filters import Command
 from aiogram import Router
 from database.repo import Id_UsersRepo
 from help_def.del_message import delete_message_after_delay
+from help_def.add_new_user_to_db import add_new_user_to_bd
 import asyncio
 
 router = Router()
@@ -10,6 +11,8 @@ router = Router()
 
 @router.message(Command("name"))
 async def name(message: Message):
+    add_new_user_to_bd(message.from_user.id, message)
+
     if '@' in message.text:
         name_all = message.text.split()
         name = ''

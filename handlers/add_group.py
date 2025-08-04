@@ -2,23 +2,18 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 from database.repo import TopicsRepo
-from database.repo import Id_UsersRepo
+from help_def.add_new_user_to_db import add_new_user_to_bd
 
 router = Router()
 
 @router.message(Command("add_group"))
 async def send_message_to_group(message: Message):
-    id_user = message.from_user.id
-    if Id_UsersRepo.get_user(id_user) is None:
-        if message.from_user.username is None:
-            Id_UsersRepo.add_user(id_user, message.from_user.full_name, id_group=None)
-        else:
-            Id_UsersRepo.add_user(id_user, f'@{message.from_user.username}', id_group=None)
-    TopicsRepo.add_topic(message.reply_to_message.forum_topic_created.name, message.message_thread_id)
-    await message.reply('Чат добавлен')
-
-    try:
+    add_new_user_to_bd(message.from_user.id, message)
+    if message.chat.type != "private":
         TopicsRepo.add_topic(message.reply_to_message.forum_topic_created.name, message.message_thread_id)
-        await message.reply("Чат добавлен")
-    except Exception as e:
-        await message.reply("Чат уже добавлен")
+        await message.reply('Чат добавлен')
+        try:
+            TopicsRepo.add_topic(message.reply_to_message.forum_topic_created.name, message.message_thread_id)
+            await message.reply("Чат добавлен")
+        except Exception as e:
+            await message.reply("Чат уже добавлен")
